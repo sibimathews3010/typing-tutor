@@ -1,0 +1,264 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<conio.h>
+#include<time.h>
+#define ESC 27
+
+struct user{
+    char name[15];
+};
+struct userlog{
+    char name[15];
+    char lesson[10];
+    float accuracy;
+    float score;
+    float Time;
+    float wpm;
+};
+void about()
+{   system("cls");
+    printf("\n\n\t\t\t\t\t----ABOUT----\n\n\t\tTHIS IS PROJECT IS POWERED BY TEAM 15 . TYPING TUTOR HELPS TO GAIN SPEED AND DECREASES THE TIME SPENT ON THE COMPUTER THUS HELPING VERY MUCH.THIS PROJECT IS A SMALL PROGRAM WHERE USER CAN EASILY ACCESS THEIR RESULTS AND VIEW STATISTICS OF OTHER PEOPLE WHO HAVE USED THIS PROGRAM");
+    _getch();
+}
+void showbyuser(char a[15])
+{
+    system("cls");
+    FILE *fp;
+    fp=fopen("userlog.dat","rb");
+    struct userlog obj;
+    int flag=0;
+    printf("\n\n\t\t\t%10s%10s%10s%8s%5s%10s","Name","Lesson","Accuracy","Score","Time","WPM");
+    while(fread(&obj,sizeof(obj),1,fp))
+    {
+        if(strcmp(obj.name,a)==0)
+           {
+               printf("\n\t\t\t%10s%10s%9.1f%8.1f%6.1fsec%10f",obj.name,obj.lesson,obj.accuracy,obj.score,(float)obj.Time,obj.wpm);
+               flag=1;
+           }
+    }
+    if(flag==0)
+        printf("\n\n\n\t\t\tRecords of user not found\n");
+    fclose(fp);
+    _getch();
+}
+void showall()
+{
+    system("cls");
+    FILE *fp;
+    fp=fopen("userlog.dat","rb");
+    struct userlog obj;
+
+    printf("\n\n\t\t\t%10s%10s%10s%8s%5s%10s","Name","Lesson","Accuracy","Score","Time","WPM");
+    while(fread(&obj,sizeof(obj),1,fp))
+    {
+        printf("\n\t\t\t%10s%10s%9.1f%8.1f%6.1fsec%10f",obj.name,obj.lesson,obj.accuracy,obj.score,(float)obj.Time,obj.wpm);
+    }
+    fclose(fp);
+    _getch();
+}
+
+void viewstatistics()
+{
+    int ch;
+    system("cls");
+    printf("\n\n\n\t\t\t\t\t\t1.Show all records\n");
+    printf("\n\t\t\t\t\t\t2.Show by user\n");
+    printf("\n\t\t\t\t\t\t3.back\n");
+    scanf("%d",&ch);
+    if(ch==1)showall();
+    else if(ch==2)
+    {
+        char name[15];
+        printf("\t\t\t\t\tEnter user name : ");scanf(" %[^'\n']s",name);
+        showbyuser(name);
+    }
+    else return;
+ }
+
+void beginsession(char name[15],char lesson[15])
+{
+	FILE *fp;
+	time_t t1,t2;
+	t1=time(NULL);
+	system("cls");
+    struct userlog obj;
+    float mistake=0.0,filelength,typelength=0.0;
+    float accuracy,score,wpm=0.00;
+
+    strcpy(obj.lesson,lesson);
+    strcat(lesson,".txt");
+
+    FILE *les;
+    les=fopen(lesson,"r");
+    char c;
+    while(c!=EOF)
+    {
+        c=fgetc(les);
+        printf("%c",c);
+    }
+    fseek(les,0,SEEK_END);
+    filelength=ftell(les);
+    fseek(les,0,SEEK_SET);
+    printf("\n\n");
+    printf("%10s:%10s\n","USER NAME",name);
+    printf("%10s:%10s\n\n","LESSON",obj.lesson);
+    while(1)
+    {
+        c=_getch();
+        if(c==ESC)
+            break;
+        if(c==fgetc(les))
+        {
+            printf("%c",c);
+            if(c==' ')
+                wpm++;
+            typelength++;
+        }
+        else
+        {
+            fseek(les,-1,SEEK_CUR);
+            mistake++;
+        }
+    }
+    t2=time(NULL);
+    accuracy=(((typelength-mistake)/typelength)*100.00);
+    score=((typelength/filelength)*accuracy);
+    wpm=(wpm/(difftime(t2,t1)/60));
+
+    obj.accuracy=accuracy;
+    obj.score=score;
+    obj.Time=difftime(t2,t1);
+    obj.wpm=wpm;
+
+    strcpy(obj.name,name);
+
+    fp=fopen("userlog.dat","ab");
+    system("cls");
+    printf("\n\n\t\t\t\t\t**RESULT** \n\n");
+    printf("\n\n\t\t\t%10s%10s%10s%8s%5s%10s","Name","Lesson","Accuracy","Score","Time","WPM");
+    printf("\n\t\t\t%10s%10s%9.1f%8.1f%6.1fsec%10f",obj.name,obj.lesson,obj.accuracy,obj.score,(float)obj.Time,obj.wpm);
+    fwrite(&obj,sizeof(obj),1,fp);
+    _getch();
+    fclose(les);
+    fclose(fp);
+}
+
+void existinguser()
+{
+    system("cls");
+    FILE *fp;
+    struct user obj;
+    char name[15];
+    int flag=0;
+    fp=fopen("users.dat","rb");
+    printf("\n\n\t\t\t\tEnter user name to search : ");scanf(" %[^'\n']s",name);
+
+    while(fread(&obj,sizeof(obj),1,fp))
+    {
+        if(strcmp(obj.name,name)==0)
+        {
+            printf("\n\n\t\t\t\t\tUSER FOUND\n");
+            flag=1;
+            break;
+        }
+    }
+    if(flag==0)
+    {
+        printf("\n\n\t\t\t\t\tUSER NOT FOUND\n");
+        _getch();
+        fclose(fp);
+    }
+    else
+    {
+    char lesson[15];
+    int ch;
+    while(1)
+        {
+            printf("\n\n\t\t\t\t\tSELECT DIFFICULTY\n\n\t\t\t\t1.Easy\n\t\t\t\t2.Moderate\n\t\t\t\t3.Hard\n");scanf(" %d",&ch);
+            if(ch==1){strcpy(lesson,"Easy");break;}
+            else if(ch==2){strcpy(lesson,"Moderate");break;}
+            else if(ch==3){strcpy(lesson,"Hard");break;}
+            else printf("\n\t\t\t\tINVALID INPUT, TRY AGAIN\n ");
+        }
+    fclose(fp);
+    beginsession(name,lesson);
+    return;
+    }
+
+}
+
+void createuser()
+{
+    system("cls");
+    FILE *fo,*fp;
+    struct user obj;
+    int ch;
+    printf("\t\t\t\t\tEnter user name : ");scanf(" %[^'\n']s",obj.name);
+    struct user check;
+    fp=fopen("users.dat","rb");
+    while(fread(&check,sizeof(check),1,fp))
+    {
+        if(strcmp(check.name,obj.name)==0)
+        {
+            printf("\n\n\t\t\t\t\t\t***USER ALREADY EXISTS***\n");
+            fclose(fp);
+            _getch();
+            return;
+        }
+    }
+    fclose(fp);
+    fo=fopen("users.dat","ab");
+    fwrite(&obj,sizeof(obj),1,fo);
+    fclose(fo);
+    printf("\n\n\t\t\t\t\t\t---USER CREATED---\n\n");
+    _getch();
+}
+
+void selectuser()
+{
+    system("cls");
+    int ch;
+    printf("\n\n\n\t\t\t\t\t\t1.Create user\n\n");
+    printf("\t\t\t\t\t\t2.Select existing user\n\n");
+    printf("\t\t\t\t\t\t3.back\n\n");
+
+    scanf("%d",&ch);
+
+    switch(ch)
+    {
+        case 1  :   createuser();
+                    break;
+        case 2  :   existinguser();
+                    break;
+        case 3  :   return;
+        default :   return;
+    }
+}
+
+void main()
+{
+    while(1)
+    {
+        system("cls");
+        int ch;
+        printf("\n\n\n\t\t\t\t\t\t-----MAIN MENU-----\n\n");
+        printf("\t\t\t\t\t\t1.Select User\n\n");
+        printf("\t\t\t\t\t\t2.View Statistics\n\n");
+        printf("\t\t\t\t\t\t3.About\n\n");
+        printf("\t\t\t\t\t\t4.Exit\n\n");
+        printf("\t\t\t\t\t\t");
+        scanf("%d",&ch);
+
+        switch(ch)
+        {
+            case 1  :   selectuser();
+                        break;
+            case 2  :   viewstatistics();
+                        break;
+            case 3  :   about();
+                        break;
+            case 4  :   exit(0);
+        }
+    }
+}
